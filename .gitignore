@@ -1,0 +1,7 @@
+node_modules
+yarn-error.log
+.serverless/
+.webpack/
+.dynamodb/
+.build/
+.DS_Store

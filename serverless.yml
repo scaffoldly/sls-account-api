@@ -1,0 +1,179 @@
+service: ${file(serverless.config.js):repositoryName}
+
+frameworkVersion: ^2.2.0
+
+package:
+  individually: true
+
+plugins:
+  - serverless-bundle
+  - serverless-dotenv-plugin
+  - serverless-configuration
+  - serverless-dynamodb-local
+  - serverless-plugin-resource-tagging
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  cfnRole: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-cloudformation
+  stage: ${opt:stage, "local"}
+  apiKeys:
+    - ${self:service}-${opt:stage, "local"}
+  apiGateway:
+    restApiId: ${env:AWS_REST_API_ID}
+    restApiRootResourceId: ${env:AWS_REST_API_ROOT_RESOURCE_ID}
+  tracing:
+    lambda: true
+  environment:
+    SERVICE_NAME: ${self:service}
+    STAGE: ${opt:stage, "local"}
+  stackTags:
+    ServiceName: ${self:service}
+    ServiceStage: ${opt:stage, "local"}
+
+functions:
+  # Login/Auth Functions
+  authorize-E-v1:
+    role: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-${opt:stage, "local"}
+    handler: src/index.authorizeV1
+  login-certs-R-v1:
+    role: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-${opt:stage, "local"}
+    handler: src/index.getLoginCertsV1
+    events:
+      - http:
+          path: api/v1/login/certs
+          method: get
+          cors: true
+  login-O-v1:
+    role: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-${opt:stage, "local"}
+    handler: src/index.loginOptionsV1
+    events:
+      - http:
+          path: api/v1/login
+          method: options
+      - http:
+          path: api/v1/login/refresh
+          method: options
+  login-R-v1:
+    role: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-${opt:stage, "local"}
+    handler: src/index.getLoginsV1
+    events:
+      - http:
+          path: api/v1/login
+          method: get
+          cors: true
+          authorizer: authorize-E-v1
+  login-C-v1:
+    role: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-${opt:stage, "local"}
+    handler: src/index.createLoginV1
+    events:
+      - http:
+          path: api/v1/login
+          method: post
+          response:
+            headers:
+              Set-Cookie: "'integration.response.body.cookie'"
+            template: $input.path('$')
+  login-D-v1:
+    role: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-${opt:stage, "local"}
+    handler: src/index.deleteLoginV1
+    events:
+      - http:
+          path: api/v1/login
+          method: delete
+          authorizer: authorize-E-v1
+          response:
+            headers:
+              Set-Cookie: "'integration.response.body.cookie'"
+            template: $input.path('$')
+  login-refresh-C-v1:
+    role: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-${opt:stage, "local"}
+    handler: src/index.refreshLoginV1
+    events:
+      - http:
+          path: api/v1/login/refresh
+          method: post
+          response:
+            headers:
+              Set-Cookie: "'integration.response.body.cookie'"
+            template: $input.path('$')
+
+  # Account Functions
+  account-C-v1:
+    role: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-${opt:stage, "local"}
+    handler: src/index.createAccountV1
+    events:
+      - http:
+          path: api/v1
+          method: post
+          cors: true
+  account-U-v1:
+    role: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-${opt:stage, "local"}
+    handler: src/index.updateAccountV1
+    events:
+      - http:
+          path: api/v1
+          method: patch
+          cors: true
+          authorizer:
+            name: authorize-E-v1
+            resultTtlInSeconds: 0
+  account-R-v1:
+    role: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-${opt:stage, "local"}
+    handler: src/index.getAccountV1
+    events:
+      - http:
+          path: api/v1
+          method: get
+          cors: true
+          authorizer: authorize-E-v1
+
+resources:
+  Resources:
+    Accounts:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      Properties:
+        TableName: ${opt:stage, "local"}-${self:service}-accounts
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+          - AttributeName: sk
+            KeyType: RANGE
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: sk
+            AttributeType: S
+        StreamSpecification:
+          StreamViewType: NEW_IMAGE
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        SSESpecification:
+          SSEEnabled: true
+        BillingMode: PAY_PER_REQUEST
+
+custom:
+  serverless-offline:
+    useChildProcesses: false
+    noPrependStageInUrl: true
+    prefix: ${file(serverless.config.js):serviceName}
+  bundle:
+    packager: yarn
+    copyFiles:
+      - from: './.scaffoldly/${opt:stage, "local"}'
+        to: './.scaffoldly'
+  serverless-configuration:
+    local:
+      del:
+        - provider.apiGateway.restApiId
+        - provider.apiGateway.restApiRootResourceId
+        # - custom.bundle.copyFiles
+  dynamodb:
+    stages:
+      - local
+    start:
+      port: 8100
+      dbPath: .dynamodb
+      migrate: true
