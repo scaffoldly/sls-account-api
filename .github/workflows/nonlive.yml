@@ -2,7 +2,7 @@ name: Nonlive Deploy
 on:
   push:
     branches:
-      - master
+      - main
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   AWS_PARTITION: ${{ secrets.NONLIVE_AWS_PARTITION }}
