@@ -58,15 +58,6 @@ export const generateKeys = (): GeneratedKeys => {
   };
 };
 
-export const getPublicKey = async (): Promise<JWKECKey> => {
-  const publicKey = await GetSecret(JWT_PUBLIC_KEY_SECRET_NAME);
-  if (!publicKey) {
-    throw new Error('Keys have not been generated for this service yet.');
-  }
-
-  return JSON.parse(Buffer.from(publicKey, 'base64').toString('utf8'));
-};
-
 export const getOrCreateKeys = async (): Promise<JWKECKey> => {
   let privateKey = await GetSecret(JWT_PRIVATE_KEY_SECRET_NAME);
 
@@ -83,6 +74,16 @@ export const getOrCreateKeys = async (): Promise<JWKECKey> => {
   }
 
   return JSON.parse(Buffer.from(privateKey, 'base64').toString('utf8'));
+};
+
+export const getPublicKey = async (): Promise<JWKECKey> => {
+  let publicKey = await GetSecret(JWT_PUBLIC_KEY_SECRET_NAME);
+  if (!publicKey) {
+    await getOrCreateKeys();
+    publicKey = await GetSecret(JWT_PUBLIC_KEY_SECRET_NAME);
+  }
+
+  return JSON.parse(Buffer.from(publicKey, 'base64').toString('utf8'));
 };
 
 export const createToken = async (

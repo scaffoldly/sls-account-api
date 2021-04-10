@@ -1,10 +1,11 @@
 {
   "name": "api",
-  "version": "0.1.0",
+  "version": "0.1.10",
   "scripts": {
-    "prepare": "./node_modules/.bin/serverless dynamodb install",
-    "start": "export SLS_DEBUG=* && ./node_modules/.bin/serverless offline start",
-    "debug": "export SLS_DEBUG=* && node --inspect=127.0.0.1:5858 ./node_modules/.bin/serverless offline start"
+    "serverless": "SLS_DEBUG=* serverless",
+    "prepare": "yarn serverless dynamodb install",
+    "start": "yarn serverless offline start",
+    "deploy": "yarn serverless deploy"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.72",
@@ -24,23 +25,23 @@
     "eslint-plugin-react": "^7.19.0",
     "prettier": "^2.0.5",
     "serverless": "^2.2.0",
-    "serverless-bundle": "^3.1.0",
+    "serverless-bundle": "^4.2.3",
     "serverless-configuration": "^1.0.0",
     "serverless-dotenv-plugin": "^3.0.0",
     "serverless-dynamodb-local": "^0.2.39",
     "serverless-offline": "^6.8.0",
     "serverless-offline-dotenv": "^0.1.2",
+    "serverless-plugin-resource-tagging": "^1.1.0",
     "typescript": "^4.2.3"
   },
   "dependencies": {
-    "@scaffoldly/serverless-util": "^2.0.11",
+    "@scaffoldly/serverless-util": "^2.0.12",
     "axios": "^0.21.1",
     "cookies": "^0.8.0",
     "dotenv": "^8.2.0",
     "google-auth-library": "^6.1.3",
     "jose": "2",
     "moment": "^2.26.0",
-    "serverless-plugin-resource-tagging": "^1.1.0",
     "uuid": "^8.3.2"
   }
 }

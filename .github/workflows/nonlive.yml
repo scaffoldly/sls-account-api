@@ -2,7 +2,7 @@ name: Nonlive Deploy
 on:
   push:
     branches:
-      - main
+      - master
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   AWS_PARTITION: ${{ secrets.NONLIVE_AWS_PARTITION }}
@@ -34,4 +34,4 @@ jobs:
           tag-prefix: ''
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: ./node_modules/.bin/serverless deploy --stage $NODE_ENV
+      - run: yarn deploy --stage $NODE_ENV

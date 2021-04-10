@@ -2,9 +2,6 @@ service: ${file(serverless.config.js):repositoryName}
 
 frameworkVersion: ^2.2.0
 
-package:
-  individually: true
-
 plugins:
   - serverless-bundle
   - serverless-dotenv-plugin
@@ -169,7 +166,7 @@ custom:
       del:
         - provider.apiGateway.restApiId
         - provider.apiGateway.restApiRootResourceId
-        # - custom.bundle.copyFiles
+        - custom.bundle.copyFiles
   dynamodb:
     stages:
       - local
