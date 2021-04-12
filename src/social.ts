@@ -1,9 +1,9 @@
 import { HttpError } from '@scaffoldly/serverless-util';
 import * as Google from 'google-auth-library';
-import { GOOGLE_OAUTH_CLIENT_ID } from './constants';
+import * as sharedEnvVars from '../.scaffoldly/shared-env-vars.json';
 
 const verifyGoogleToken = async (token) => {
-  const client = new Google.OAuth2Client({ clientId: GOOGLE_OAUTH_CLIENT_ID });
+  const client = new Google.OAuth2Client({ clientId: sharedEnvVars['GOOGLE_CLIENT_ID'] });
 
   const result = await client.verifyIdToken({ idToken: token });
 

@@ -105,6 +105,9 @@ functions:
           path: api/v1
           method: post
           cors: true
+          authorizer:
+            name: authorize-E-v1
+            resultTtlInSeconds: 0
   account-U-v1:
     role: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-${opt:stage, "local"}
     handler: src/index.updateAccountV1

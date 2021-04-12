@@ -24,8 +24,6 @@ import {
   Context,
 } from 'aws-lambda';
 import { CleansedObject } from './types';
-import * as serviceUrls from '../.scaffoldly/service-urls.json';
-import * as sharedEnvVars from '../.scaffoldly/shared-env-vars.json';
 
 dotenv.config();
 
@@ -208,10 +206,6 @@ export const loginOptionsV1 = async (
   console.log(`Event: ${stringifyRedacted(event)}`);
   console.log(`Context: ${JSON.stringify(context, null, 2)}`);
 
-  // TODO REMOVE
-  console.log('!!! service urls', serviceUrls);
-  console.log('!!! env vars', sharedEnvVars);
-
   return handleSuccess(
     event,
     {},
@@ -226,8 +220,11 @@ export const getLoginCertsV1 = async (
   console.log(`Event: ${JSON.stringify(event, null, 2)}`);
   console.log(`Context: ${JSON.stringify(context, null, 2)}`);
 
+  const { headers } = event;
+  const { Host } = headers;
+
   try {
-    const publicKey = await getPublicKey();
+    const publicKey = await getPublicKey(Host);
     return handleSuccess(event, { keys: [publicKey] });
   } catch (e) {
     return handleError(event, e);

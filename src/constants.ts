@@ -1,5 +1,4 @@
-export const { SERVICE_NAME, STAGE, DOMAIN } = process.env;
-export const { GOOGLE_OAUTH_CLIENT_ID } = process.env;
+export const { SERVICE_NAME, STAGE } = process.env;
 export const { JWT_REFRESH_TOKEN_MAX_AGE } = process.env;
 export const ACCOUNTS_TABLE = 'accounts';
 

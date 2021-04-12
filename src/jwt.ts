@@ -3,16 +3,12 @@ import axios from 'axios';
 import { Buffer } from 'buffer';
 import * as moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  AUTH_PREFIXES,
-  DOMAIN,
-  JWT_REFRESH_TOKEN_MAX_AGE,
-  REFRESH_COOKIE_PREFIX,
-} from './constants';
+import { AUTH_PREFIXES, JWT_REFRESH_TOKEN_MAX_AGE, REFRESH_COOKIE_PREFIX } from './constants';
 import { accountsTable } from './db';
 
 const JWT_PRIVATE_KEY_SECRET_NAME = 'jwtPrivateKey';
 const JWT_PUBLIC_KEY_SECRET_NAME = 'jwtPublicKey';
+const JWT_ISSUER_SECRET_NAME = 'jwtIssuer';
 
 import { JWT, JWK, JWKS, JWKECKey } from 'jose';
 import {
@@ -37,8 +33,8 @@ const Cookies = require('cookies');
 
 const jwksCache = {};
 
-const generateAudience = (id: string) => {
-  return `urn:${DOMAIN.split('.').reverse().join('.')}:account:${id}`;
+const generateAudience = (host: string, id: string) => {
+  return `urn:auth:${host.split('.').reverse().join('.')}:${id}`;
 };
 
 export const generateKeys = (): GeneratedKeys => {
@@ -58,13 +54,14 @@ export const generateKeys = (): GeneratedKeys => {
   };
 };
 
-export const getOrCreateKeys = async (): Promise<JWKECKey> => {
+export const getOrCreateKeys = async (issuer: string): Promise<JWKECKey> => {
   let privateKey = await GetSecret(JWT_PRIVATE_KEY_SECRET_NAME);
 
   if (!privateKey) {
     const keys = generateKeys();
 
     await SetSecret(JWT_PUBLIC_KEY_SECRET_NAME, JSON.stringify(keys.publicKey.jwk), true);
+    await SetSecret(JWT_ISSUER_SECRET_NAME, issuer);
 
     privateKey = await SetSecret(
       JWT_PRIVATE_KEY_SECRET_NAME,
@@ -76,10 +73,10 @@ export const getOrCreateKeys = async (): Promise<JWKECKey> => {
   return JSON.parse(Buffer.from(privateKey, 'base64').toString('utf8'));
 };
 
-export const getPublicKey = async (): Promise<JWKECKey> => {
+export const getPublicKey = async (issuer: string): Promise<JWKECKey> => {
   let publicKey = await GetSecret(JWT_PUBLIC_KEY_SECRET_NAME);
   if (!publicKey) {
-    await getOrCreateKeys();
+    await getOrCreateKeys(issuer);
     publicKey = await GetSecret(JWT_PUBLIC_KEY_SECRET_NAME);
   }
 
@@ -97,13 +94,13 @@ export const createToken = async (
 
   const obj = { ...payload, refreshUrl: `${ssl ? 'https' : 'http'}://${Host}${path}/refresh` };
 
-  const privateKey = await getOrCreateKeys();
+  const privateKey = await getOrCreateKeys(Host);
   const key = JWK.asKey(privateKey);
   return {
     payload: obj,
     token: JWT.sign(obj, key, {
-      audience: generateAudience(id),
-      expiresIn: '10 minute',
+      audience: generateAudience(Host, id),
+      expiresIn: '60 minute',
       header: {
         typ: 'JWT',
       },
@@ -324,17 +321,19 @@ export const verifyToken = async (
     return response;
   }
 
+  const issuer = await GetSecret(JWT_ISSUER_SECRET_NAME);
+
   const issuerUrl = new URL(decoded.iss);
-  if (!issuerUrl.hostname.indexOf(DOMAIN)) {
+  if (issuerUrl.hostname.indexOf(issuer) === -1) {
     response.error = new Error(
-      `Issuer mismatch. Got: ${decoded.iss}; Expected hostname to contain: ${DOMAIN}`
+      `Issuer mismatch. Got: ${decoded.iss}; Expected hostname to contain: ${issuer}`
     );
     return response;
   }
 
   try {
     const jwks = await fetchJwks(decoded.iss);
-    const verified = JWT.verify(token, jwks);
+    const verified = JWT.verify(token, jwks, {});
 
     if (!verified) {
       response.error = new Error('Unable to verify token');
