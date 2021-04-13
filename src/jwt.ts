@@ -92,7 +92,11 @@ export const createToken = async (
   const { Host } = headers;
   const ssl = headers['X-Forwarded-Proto'] === 'https';
 
-  const obj = { ...payload, refreshUrl: `${ssl ? 'https' : 'http'}://${Host}${path}/refresh` };
+  const obj = {
+    ...payload,
+    refreshUrl: `${ssl ? 'https' : 'http'}://${Host}${path}/refresh`,
+    verifyUrl: `${ssl ? 'https' : 'http'}://${Host}${path}/verify`,
+  };
 
   const privateKey = await getOrCreateKeys(Host);
   const key = JWK.asKey(privateKey);
@@ -285,6 +289,47 @@ const extractRefreshCookie = (event, sk) => {
   }, cookie);
 };
 
+export const verifyJwt = async (jwt: string): Promise<DecodedLoginToken> => {
+  const decoded = JWT.decode(jwt) as DecodedLoginToken;
+  if (!decoded) {
+    throw new Error('Unable to decode token');
+  }
+
+  const { aud: principal, iss } = decoded;
+  if (!principal) {
+    throw new Error('Missing principal in decoded token');
+  }
+
+  if (!iss) {
+    throw new Error('Missing issuer in decoded token');
+  }
+
+  const issuer = await GetSecret(JWT_ISSUER_SECRET_NAME);
+  if (!issuer) {
+    throw new Error(`Unable to find secret: ${JWT_ISSUER_SECRET_NAME}`);
+  }
+
+  const issuerUrl = new URL(iss);
+  if (issuerUrl.hostname.indexOf(issuer) === -1) {
+    throw new Error(
+      `Issuer mismatch. Got: ${decoded.iss}; Expected hostname to contain: ${issuer}`
+    );
+  }
+
+  const jwks = await fetchJwks(decoded.iss);
+  const verified = JWT.verify(jwt, jwks, {});
+
+  if (!verified) {
+    throw new Error('Unable to verify token');
+  }
+
+  if (verified instanceof Error) {
+    throw verified;
+  }
+
+  return verified as DecodedLoginToken;
+};
+
 export const verifyToken = async (
   event: APIGatewayAuthorizerEvent
 ): Promise<VerifyTokenResponse> => {
@@ -302,7 +347,7 @@ export const verifyToken = async (
     return response;
   }
 
-  let token;
+  let token: string;
   try {
     token = extractToken(authorization);
   } catch (e) {
@@ -310,49 +355,19 @@ export const verifyToken = async (
     return response;
   }
 
-  const decoded = JWT.decode(token) as DecodedLoginToken;
-
-  console.log('Checking token', JSON.stringify(token, null, 2));
-
-  response.principal = decoded.aud;
-
-  if (!decoded || !decoded.iss) {
-    response.error = new Error('Invalid payload: Missing issuer');
-    return response;
-  }
-
-  const issuer = await GetSecret(JWT_ISSUER_SECRET_NAME);
-
-  const issuerUrl = new URL(decoded.iss);
-  if (issuerUrl.hostname.indexOf(issuer) === -1) {
-    response.error = new Error(
-      `Issuer mismatch. Got: ${decoded.iss}; Expected hostname to contain: ${issuer}`
-    );
-    return response;
-  }
-
+  let payload: DecodedLoginToken;
   try {
-    const jwks = await fetchJwks(decoded.iss);
-    const verified = JWT.verify(token, jwks, {});
-
-    if (!verified) {
-      response.error = new Error('Unable to verify token');
-      return response;
-    }
-
-    if (verified instanceof Error) {
-      response.error = verified;
-      return response;
-    }
-
-    response.authorized = true;
-    response.payload = verified;
-
-    return response;
+    payload = await verifyJwt(token);
   } catch (e) {
     response.error = e;
     return response;
   }
+
+  response.principal = payload.aud;
+  response.authorized = true;
+  response.payload = payload;
+
+  return response;
 };
 
 export const fetchRefreshRecord = async (event: APIGatewayProxyEvent): Promise<RefreshTokenRow> => {

@@ -15,6 +15,7 @@ import {
   createToken,
   getPublicKey,
   verifyToken,
+  verifyJwt,
 } from './jwt';
 import {
   APIGatewayAuthorizerEvent,
@@ -167,6 +168,7 @@ export const authorizeV1 = async (
 
   const { methodArn } = event;
 
+  // TODO OAuth claims to methods
   console.log(`Verifying access to ${methodArn}`);
 
   const verified = await verifyToken(event);
@@ -199,6 +201,29 @@ export const authorizeV1 = async (
   return response;
 };
 
+export const verifyLoginV1 = async (
+  event: APIGatewayProxyEvent,
+  context: Context
+): Promise<APIGatewayProxyResult> => {
+  console.log(`Event: ${stringifyRedacted(event)}`);
+  console.log(`Context: ${JSON.stringify(context, null, 2)}`);
+
+  try {
+    const params = requiredParameters(event.body, ['jwt', 'methodArn']);
+
+    const { methodArn, jwt } = params;
+
+    // TODO OAuth claims to methods
+    console.log(`Verifying access to ${methodArn}`);
+
+    const verified = await verifyJwt(jwt);
+
+    return handleSuccess(event, verified);
+  } catch (e) {
+    return handleError(event, e);
+  }
+};
+
 export const loginOptionsV1 = async (
   event: APIGatewayProxyEvent,
   context: Context
@@ -217,7 +242,7 @@ export const getLoginCertsV1 = async (
   event: APIGatewayProxyEvent,
   context: Context
 ): Promise<APIGatewayProxyResult> => {
-  console.log(`Event: ${JSON.stringify(event, null, 2)}`);
+  console.log(`Event: ${stringifyRedacted(event)}`);
   console.log(`Context: ${JSON.stringify(context, null, 2)}`);
 
   const { headers } = event;

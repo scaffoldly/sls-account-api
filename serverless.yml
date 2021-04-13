@@ -95,6 +95,14 @@ functions:
             headers:
               Set-Cookie: "'integration.response.body.cookie'"
             template: $input.path('$')
+  login-verify-C-v1:
+    role: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-${opt:stage, "local"}
+    handler: src/index.verifyLoginV1
+    events:
+      - http:
+          path: api/v1/login/verify
+          method: post
+          cors: true
 
   # Account Functions
   account-C-v1:
@@ -153,6 +161,11 @@ resources:
         SSESpecification:
           SSEEnabled: true
         BillingMode: PAY_PER_REQUEST
+  Outputs:
+    AuthorizerArn:
+      Value: !GetAtt AuthorizeDashEDashv1LambdaFunction.Arn
+      Export:
+        Name: ${opt:stage, "local"}-${self:service}-authorize-v1-arn
 
 custom:
   serverless-offline:
