@@ -45,6 +45,11 @@ const verifyEmail = async (email: string, code: string): Promise<VerificationRes
 
 export const verifyLogin = async (body: string): Promise<LoginDetail> => {
   const { provider } = requiredParameters(body, ['provider']);
+
+  // Cleanse/normalize the email address
+  let { email } = requiredParameters(body, ['email']);
+  email = email.trim().toLowerCase();
+
   switch (provider) {
     case 'GOOGLE': {
       const params = requiredParameters(body, ['id', 'idToken', 'authToken', 'email', 'name']);
@@ -52,20 +57,19 @@ export const verifyLogin = async (body: string): Promise<LoginDetail> => {
       const result = await verifyGoogleToken(params.idToken);
       return {
         ...result,
-        id: params.email,
+        id: email,
         provider,
         payload: { ...params, ...optParams },
       };
     }
     case 'EMAIL': {
-      const params = requiredParameters(body, ['email']);
       const optParams = optionalParameters(body, ['code']);
-      const result = await verifyEmail(params.email, optParams.code);
+      const result = await verifyEmail(email, optParams.code);
       return {
         ...result,
-        id: params.email,
+        id: email,
         provider,
-        payload: { ...params },
+        payload: { email },
       };
     }
     default: {
