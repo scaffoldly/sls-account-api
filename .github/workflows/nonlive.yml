@@ -1,5 +1,6 @@
 name: Nonlive Deploy
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -12,7 +13,6 @@ env:
   AWS_REST_API_ID: ${{ secrets.NONLIVE_AWS_REST_API_ID }}
   AWS_REST_API_ROOT_RESOURCE_ID: ${{ secrets.NONLIVE_AWS_REST_API_ROOT_RESOURCE_ID }}
   NODE_ENV: nonlive
-  SLS_DEBUG: '*'
 jobs:
   deploy:
     runs-on: ubuntu-latest

@@ -1,5 +1,5 @@
 import { SENSITIVE_KEYS } from './constants';
-import { CleansedObject, LoginTokenRequest } from './types';
+import { CleansedObject } from './types';
 
 export const stringifyRedacted = (obj: unknown): string => {
   const ret = JSON.parse(JSON.stringify(obj));
@@ -18,13 +18,13 @@ export const stringifyRedacted = (obj: unknown): string => {
   return JSON.stringify(ret);
 };
 
-export const cleanseObject = (obj: LoginTokenRequest): CleansedObject => {
+export const cleanseObject = (obj: unknown): CleansedObject => {
+  if (obj == null) {
+    return {};
+  }
+
   const parsed = JSON.parse(JSON.stringify(obj));
   const cleansed = Object.entries(parsed).reduce((acc, [key, value]) => {
-    if (SENSITIVE_KEYS.includes(key.toLowerCase())) {
-      return acc;
-    }
-
     if (typeof value === 'string' || value instanceof String) {
       acc[key] = value as string;
     }

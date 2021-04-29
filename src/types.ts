@@ -6,54 +6,22 @@ export interface PemJwk {
 }
 
 export interface GeneratedKeys {
+  issuer: string;
   publicKey: PemJwk;
   privateKey: PemJwk;
 }
 
-export interface TokenResponse {
-  payload: unknown;
-  token: string;
-}
-
-export interface RowBase {
-  id: string;
-  sk: string;
-}
-
-export interface LoginTokenBase {
-  id: string;
-  email: string;
-  name: string;
-  provider: string;
-  photoUrl?: string;
-}
-
-export interface LoginTokenRequest extends LoginTokenBase {
-  idToken: string;
-  authToken: string;
-}
-
-export interface LoginTokenRowBase extends LoginTokenBase, RowBase {
-  baseUrl: string;
-  createdAt: string;
-}
-
-export interface LoginTokenRow extends LoginTokenRowBase, LoginTokenRequest {}
-
-export interface RefreshTokenResponse {
-  token: string;
-  header: string;
-}
-
-export interface RefreshTokenRow extends RowBase, RefreshTokenResponse {
-  name: string;
-  expires: number;
-}
-
 export type CleansedObject = { [key: string]: string | number | boolean };
 
-export interface DecodedLoginToken extends LoginTokenBase, LoginTokenRowBase, CleansedObject {
+export interface JwtPayload extends CleansedObject {
+  id: string;
+  sk: string;
   refreshUrl: string;
+  verifyUrl: string;
+  certsUrl: string;
+}
+
+export interface DecodedJwtPayload extends JwtPayload {
   sub: string;
   aud: string;
   iss: string;
@@ -64,6 +32,68 @@ export interface DecodedLoginToken extends LoginTokenBase, LoginTokenRowBase, Cl
 export interface VerifyTokenResponse {
   principal?: string;
   authorized: boolean;
-  payload?: DecodedLoginToken;
+  payload?: DecodedJwtPayload;
   error?: Error;
 }
+
+export type Provider = 'GOOGLE' | 'APPLE' | 'EMAIL';
+
+export interface ProviderDetail {
+  name: string;
+  clientId: string | undefined;
+}
+
+export type ProviderResponse = {
+  [provider in Provider]: ProviderDetail | null;
+};
+
+export interface Row<T> {
+  id: string;
+  sk: string;
+  detail: T;
+}
+
+export type VerificationMethod = 'EMAIL' | 'AUTHENTICATOR' | 'NONE';
+
+export interface VerificationResultBase {
+  verified: boolean;
+  verificationMethod: VerificationMethod;
+}
+
+export interface LoginDetail extends VerificationResultBase {
+  id: string;
+  provider: Provider;
+  payload?: { [key: string]: unknown };
+}
+
+export type Login = Row<LoginDetail>;
+
+export interface TokenResponse extends LoginDetail {
+  payload: JwtPayload;
+  token: string;
+}
+
+export interface TotpDetail {
+  secret: string;
+  verified: boolean;
+  authenticator: boolean;
+}
+
+export type Totp = Row<TotpDetail>;
+
+export interface RefreshDetail {
+  sk: string;
+  token: string;
+  expires: number;
+  header: string;
+}
+
+export type Refresh = Row<RefreshDetail>;
+
+export interface PrimaryAccountDetail {
+  name?: string;
+  email?: string;
+  company?: string;
+}
+
+export type PrimaryAccount = Row<PrimaryAccountDetail>;
