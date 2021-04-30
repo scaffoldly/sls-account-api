@@ -173,9 +173,6 @@ custom:
     prefix: ${file(serverless.config.js):serviceName}
   bundle:
     packager: yarn
-    copyFiles:
-      - from: './.scaffoldly/${opt:stage, "local"}'
-        to: './.scaffoldly'
   serverless-configuration:
     local:
       del:

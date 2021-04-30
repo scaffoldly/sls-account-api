@@ -19,10 +19,7 @@ export const authorizeV1 = async (
 
   const verified = await verifyToken(event);
 
-  if (!verified || !verified.authorized || !verified.payload) {
-    console.warn('Unauthorized', verified);
-    throw new Error('Unauthorized');
-  }
+  console.log('Verification result:', JSON.stringify(verified));
 
   // TODO: Scopes
   // TODO: Check resource path
@@ -34,7 +31,10 @@ export const authorizeV1 = async (
       Statement: [
         {
           Action: 'execute-api:Invoke',
-          Effect: verified.authorized ? 'Allow' : 'Deny',
+          Effect:
+            !verified || !verified.authorized || !verified.payload || verified.error
+              ? 'Deny'
+              : 'Allow',
           Resource: methodArn,
         },
       ],

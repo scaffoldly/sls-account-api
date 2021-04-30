@@ -1,11 +1,11 @@
 import { HttpError, optionalParameters, requiredParameters } from '@scaffoldly/serverless-util';
 import * as Google from 'google-auth-library';
-import * as envVars from '../.scaffoldly/env-vars.json';
+import { env } from './env';
 import { sendTotp, verifyTotp } from './totp';
 import { LoginDetail, VerificationResultBase } from './types';
 
 const verifyGoogleToken = async (token: string): Promise<VerificationResultBase> => {
-  const client = new Google.OAuth2Client({ clientId: envVars['GOOGLE_CLIENT_ID'] });
+  const client = new Google.OAuth2Client({ clientId: env.env_vars.GOOGLE_CLIENT_ID });
 
   let result: Google.LoginTicket;
   try {

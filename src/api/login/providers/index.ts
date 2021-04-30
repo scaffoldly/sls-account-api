@@ -1,7 +1,7 @@
 import { handleSuccess, AWS, handleError } from '@scaffoldly/serverless-util';
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
 import { ProviderResponse } from 'src/types';
-import * as envVars from '../../../../.scaffoldly/env-vars.json';
+import { env } from '../../../env';
 
 const ses = new AWS.SES();
 
@@ -41,14 +41,14 @@ export const getV1 = async (
 
   try {
     const response: ProviderResponse = {
-      APPLE: envVars['APPLE_CLIENT_ID']
-        ? { name: 'Apple', clientId: envVars['APPLE_CLIENT_ID'] }
+      APPLE: env.env_vars.APPLE_CLIENT_ID
+        ? { name: 'Apple', clientId: env.env_vars.APPLE_CLIENT_ID }
         : undefined,
-      GOOGLE: envVars['GOOGLE_CLIENT_ID']
-        ? { name: 'Google', clientId: envVars['GOOGLE_CLIENT_ID'] }
+      GOOGLE: env.env_vars.GOOGLE_CLIENT_ID
+        ? { name: 'Google', clientId: env.env_vars.GOOGLE_CLIENT_ID }
         : undefined,
-      EMAIL: (await isVerified(envVars['MAIL_DOMAIN']))
-        ? { name: 'Email', clientId: envVars['MAIL_DOMAIN'] }
+      EMAIL: (await isVerified(env.env_vars.MAIL_DOMAIN))
+        ? { name: 'Email', clientId: env.env_vars.MAIL_DOMAIN }
         : undefined,
     };
 

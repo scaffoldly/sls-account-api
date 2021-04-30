@@ -1,13 +1,15 @@
 {
   "name": "api",
-  "version": "0.1.0",
+  "version": "0.1.55",
   "scripts": {
     "serverless": "SLS_DEBUG=* serverless",
     "prepare": "yarn serverless dynamodb install",
+    "postinstall": "dotenv -e .scaffoldly/.env -c $NODE_ENV -- ngx-scripts env service_urls env_vars --parse-json --out src/env.ts",
     "start": "yarn serverless offline start",
     "deploy": "yarn serverless deploy"
   },
   "devDependencies": {
+    "@ngx-rocket/scripts": "^5.1.0",
     "@types/aws-lambda": "^8.10.72",
     "@types/dotenv": "^8.2.0",
     "@types/moment": "^2.13.0",
@@ -16,6 +18,7 @@
     "@typescript-eslint/eslint-plugin": "^4.17.0",
     "@typescript-eslint/parser": "^4.17.0",
     "babel-eslint": "^10.1.0",
+    "dotenv-cli": "^4.0.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.1.0",
     "eslint-config-prettier": "^6.11.0",

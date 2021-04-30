@@ -5,7 +5,7 @@ import * as moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
 import { AUTH_PREFIXES, JWT_REFRESH_TOKEN_MAX_AGE, REFRESH_COOKIE_PREFIX } from './constants';
 import { accountsTable } from './db';
-import * as envVars from '../.scaffoldly/env-vars.json';
+import { env } from './env';
 
 const JWKS_SECRET_NAME = 'jwks';
 
@@ -28,7 +28,7 @@ const Cookies = require('cookies');
 const jwksCache = {};
 
 const generateAudience = (id: string) => {
-  return `urn:auth:${envVars['SERVERLESS_API_DOMAIN'].split('.').reverse().join('.')}:${id}`;
+  return `urn:auth:${env.env_vars.SERVERLESS_API_DOMAIN.split('.').reverse().join('.')}:${id}`;
 };
 
 export const generateKeys = (issuer: string): GeneratedKeys => {
@@ -53,7 +53,7 @@ export const getOrCreateKeys = async (): Promise<GeneratedKeys> => {
   let keys = await GetSecret(JWKS_SECRET_NAME);
 
   if (!keys) {
-    const generatedKeys = generateKeys(envVars['SERVERLESS_API_DOMAIN']);
+    const generatedKeys = generateKeys(env.env_vars.SERVERLESS_API_DOMAIN);
 
     await SetSecret(JWKS_SECRET_NAME, JSON.stringify(generatedKeys), true);
     keys = await GetSecret(JWKS_SECRET_NAME);

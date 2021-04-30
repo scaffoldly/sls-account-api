@@ -12,7 +12,6 @@ export const getV1 = async (
 ): Promise<APIGatewayProxyResult> => {
   console.log(`Event: ${stringifyRedacted(event)}`);
   console.log(`Context: ${JSON.stringify(context, null, 2)}`);
-
   try {
     const publicKey = await getPublicKey();
     return handleSuccess(event, { keys: [publicKey] });

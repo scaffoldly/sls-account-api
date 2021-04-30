@@ -1,7 +1,7 @@
 import * as twofactor from 'node-2fa';
 import { accountsTable } from 'src/db';
 import { AWS, HttpError } from '@scaffoldly/serverless-util';
-import * as envVars from '../../.scaffoldly/env-vars.json';
+import { env } from '../env';
 import * as totpTemplate from '../templates/totp.json';
 import { STAGE } from 'src/constants';
 import * as _ from 'lodash';
@@ -40,7 +40,6 @@ export const sendTotp = async (id: string): Promise<VerificationMethod> => {
   console.log('Fetching TOTP configuration for id:', id);
 
   let { attrs: totp }: { attrs: Totp } = (await accountsTable.model.get(id, 'totp', {})) || {};
-  console.log('!!! debug1 of totp', totp);
 
   if (!totp) {
     console.log(`Generating OTP for ${id}`);
@@ -51,7 +50,6 @@ export const sendTotp = async (id: string): Promise<VerificationMethod> => {
       { id, sk: 'totp', detail: { secret, uri, verified: false, authenticator: false } },
       { overwrite: false }
     ));
-    console.log('!!! debug2 of totp', totp);
   }
 
   const { verified, authenticator } = totp.detail;
@@ -66,7 +64,7 @@ export const sendTotp = async (id: string): Promise<VerificationMethod> => {
 
     const result = await ses
       .sendTemplatedEmail({
-        Source: `no-reply@${envVars['MAIL_DOMAIN']}`, // TODO Env Var
+        Source: `no-reply@${env.env_vars.MAIL_DOMAIN}`,
         Destination: { ToAddresses: [id] },
         Template: await fetchTemplate(),
         TemplateData: JSON.stringify({ Organization: 'TODO: OrgName', OTP: token }),
