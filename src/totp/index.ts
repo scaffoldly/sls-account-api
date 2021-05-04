@@ -43,7 +43,10 @@ export const sendTotp = async (id: string): Promise<VerificationMethod> => {
 
   if (!totp) {
     console.log(`Generating OTP for ${id}`);
-    const { secret, uri } = twofactor.generateSecret({ account: id, name: 'TODO: OrgName' });
+    const { secret, uri } = twofactor.generateSecret({
+      account: id,
+      name: env.env_vars.APPLICATION_FRIENDLY_NAME,
+    });
     // TODO: Encrypt secret/qr/url
     // TODO: Recovery Codes
     ({ attrs: totp } = await accountsTable.model.create(
@@ -67,7 +70,10 @@ export const sendTotp = async (id: string): Promise<VerificationMethod> => {
         Source: `no-reply@${env.env_vars.MAIL_DOMAIN}`,
         Destination: { ToAddresses: [id] },
         Template: await fetchTemplate(),
-        TemplateData: JSON.stringify({ Organization: 'TODO: OrgName', OTP: token }),
+        TemplateData: JSON.stringify({
+          Organization: env.env_vars.APPLICATION_FRIENDLY_NAME,
+          OTP: token,
+        }),
       })
       .promise();
 
