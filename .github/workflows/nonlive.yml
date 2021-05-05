@@ -29,9 +29,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
       - run: yarn
-      - uses: 'scaffoldly/github-action-bump-version-npm@master'
+      - uses: scaffoldly/bump-version-action@1.0.86
         with:
-          tag-prefix: ''
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          action: prerelease
+          version-file: package.json
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - run: yarn deploy --stage $NODE_ENV
