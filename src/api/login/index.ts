@@ -17,11 +17,9 @@ export const optionsV1 = async (
   console.log(`Event: ${stringifyRedacted(event)}`);
   console.log(`Context: ${JSON.stringify(context, null, 2)}`);
 
-  return handleSuccess(
-    event,
-    {},
-    { headers: { 'Access-Control-Allow-Methods': 'GET,POST,DELETE' } }
-  );
+  const headers = { 'Access-Control-Allow-Methods': 'GET,POST,DELETE', 'X-Auth-Refresh': 'true' };
+
+  return handleSuccess(event, {}, { headers });
 };
 
 export const getV1 = async (
@@ -77,7 +75,15 @@ export const postV1 = async (
     }
 
     const refresh = await createRefreshToken(login.id, login.sk, event);
-    const ret = handleSuccess(event, await createToken(login, event));
+
+    const headers = {};
+    if (event.headers['x-auth-refresh']) {
+      headers['x-auth-refresh'] = event.headers['x-auth-refresh'];
+    }
+
+    const ret = handleSuccess(event, await createToken(login, event), {
+      headers,
+    });
 
     ret.headers['Set-Cookie'] = refresh.detail.header;
 
