@@ -44,7 +44,9 @@ export const postV1 = async (
       newEvent,
       refreshRecord.detail.token
     );
-    const ret = handleSuccess(event, await createToken(login, newEvent));
+    const ret = handleSuccess(event, await createToken(login, newEvent), {
+      headers: { 'x-auth-refresh': 'true' },
+    });
 
     ret.headers['Set-Cookie'] = refresh.detail.header;
 
