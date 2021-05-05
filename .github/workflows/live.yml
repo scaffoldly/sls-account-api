@@ -1,7 +1,7 @@
 name: Live Deploy
 on:
   release:
-    types: [created]
+    types: [published]
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   AWS_PARTITION: ${{ secrets.LIVE_AWS_PARTITION }}
@@ -27,4 +27,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
       - run: yarn
+      - uses: scaffoldly/bump-version-action@1.0.86
+        with:
+          action: postrelease
+          version-file: package.json
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - run: yarn deploy --stage $NODE_ENV
