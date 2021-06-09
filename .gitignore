@@ -4,5 +4,7 @@ yarn-error.log
 .webpack/
 .dynamodb/
 .build/
+openapi/
+openapitools.json
 .DS_Store
 src/env.ts

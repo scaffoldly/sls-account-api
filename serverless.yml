@@ -30,111 +30,23 @@ provider:
     ServiceStage: ${opt:stage, "local"}
 
 functions:
-  # Events
-  authorize-E-v1:
+  lambda-handler:
     role: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-${opt:stage, "local"}
-    handler: src/events/index.authorizeV1
-
-  # Login/Auth Functions
-  login-certs-R-v1:
-    role: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-${opt:stage, "local"}
-    handler: src/api/login/certs/index.getV1
+    handler: src/lambda.handler
+    timeout: 30
     events:
       - http:
-          path: api/v1/login/certs
-          method: get
-          cors: true
-  login-providers-R-v1:
-    role: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-${opt:stage, "local"}
-    handler: src/api/login/providers/index.getV1
-    events:
+          path: /
+          method: any
       - http:
-          path: api/v1/login/providers
-          method: get
-          cors: true
-  login-O-v1:
-    role: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-${opt:stage, "local"}
-    handler: src/api/login/index.optionsV1
-    events:
-      - http:
-          path: api/v1/login
+          path: /
           method: options
       - http:
-          path: api/v1/login/refresh
+          path: /{proxy+}
+          method: any
+      - http:
+          path: /{proxy+}
           method: options
-  login-R-v1:
-    role: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-${opt:stage, "local"}
-    handler: src/api/login/index.getV1
-    events:
-      - http:
-          path: api/v1/login
-          method: get
-          cors: true
-          authorizer: authorize-E-v1
-  login-C-v1:
-    role: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-${opt:stage, "local"}
-    handler: src/api/login/index.postV1
-    events:
-      - http:
-          path: api/v1/login
-          method: post
-          response:
-            headers:
-              Set-Cookie: "'integration.response.body.cookie'"
-            template: $input.path('$')
-  login-refresh-C-v1:
-    role: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-${opt:stage, "local"}
-    handler: src/api/login/refresh/index.postV1
-    events:
-      - http:
-          path: api/v1/login/refresh
-          method: post
-          response:
-            headers:
-              Set-Cookie: "'integration.response.body.cookie'"
-            template: $input.path('$')
-  login-verify-C-v1:
-    role: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-${opt:stage, "local"}
-    handler: src/api/login/verify/index.postV1
-    events:
-      - http:
-          path: api/v1/login/verify
-          method: post
-          cors: true
-
-  # Account Functions
-  account-C-v1:
-    role: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-${opt:stage, "local"}
-    handler: src/api/account/index.postV1
-    events:
-      - http:
-          path: api/v1/account
-          method: post
-          cors: true
-          authorizer:
-            name: authorize-E-v1
-            resultTtlInSeconds: 0
-  account-U-v1:
-    role: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-${opt:stage, "local"}
-    handler: src/api/account/index.patchByIdV1
-    events:
-      - http:
-          path: api/v1/account/{id}
-          method: patch
-          cors: true
-          authorizer:
-            name: authorize-E-v1
-            resultTtlInSeconds: 0
-  account-R-v1:
-    role: arn:${env:AWS_PARTITION}:iam::${env:AWS_ACCOUNT_ID}:role/${self:service}-${opt:stage, "local"}
-    handler: src/api/account/index.getByIdV1
-    events:
-      - http:
-          path: api/v1/account/{id}
-          method: get
-          cors: true
-          authorizer: authorize-E-v1
-          resultTtlInSeconds: 0
 
 resources:
   Resources:
@@ -160,11 +72,6 @@ resources:
         SSESpecification:
           SSEEnabled: true
         BillingMode: PAY_PER_REQUEST
-  Outputs:
-    AuthorizerArn:
-      Value: !GetAtt AuthorizeDashEDashv1LambdaFunction.Arn
-      Export:
-        Name: ${opt:stage, "local"}-${self:service}-authorize-v1-arn
 
 custom:
   serverless-offline:
@@ -173,12 +80,16 @@ custom:
     prefix: ${file(serverless.config.js):serviceName}
   bundle:
     packager: yarn
+    externals:
+      - tsoa
+    copyFiles:
+      - from: 'public/*'
+        to: './'
   serverless-configuration:
     local:
       del:
         - provider.apiGateway.restApiId
         - provider.apiGateway.restApiRootResourceId
-        - custom.bundle.copyFiles
   dynamodb:
     stages:
       - local

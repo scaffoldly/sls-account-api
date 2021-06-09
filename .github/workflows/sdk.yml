@@ -1,0 +1,39 @@
+name: Generate Client Libraries
+on:
+  workflow_dispatch:
+env:
+  NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+jobs:
+  openapi-generator:
+    strategy:
+      matrix:
+        generator-command: # https://openapi-generator.tech/docs/generators/
+          - >
+            typescript-angular
+            -p modelPropertyNaming=PascalCase
+            -p fileNaming=kebab-case
+            -p npmName=@${{ github.repository }}-typescript-angular
+            -p npmRepository=https://npm.pkg.github.com
+            && cd openapi
+            && cat <<< $(jq --arg repository "https://github.com/${{ github.repository }}" '. + {repository: $repository}' package.json) > package.json
+            && cat package.json
+            && yarn
+            && yarn build
+            && yarn --verbose publish dist
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12.x'
+          registry-url: 'https://npm.pkg.github.com'
+      - run: >-
+          npx @openapitools/openapi-generator-cli
+          generate
+          --git-repo-id ${{ github.repository }}
+          -i src/swagger.json
+          -o openapi
+          -g ${{ matrix.generator-command }}
