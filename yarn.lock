@@ -1580,10 +1580,10 @@
     uri-js "^4.4.1"
     yargs "^17.0.1"
 
-"@scaffoldly/serverless-util@^3.0.32":
-  version "3.0.32"
-  resolved "https://registry.yarnpkg.com/@scaffoldly/serverless-util/-/serverless-util-3.0.32.tgz#5c0f1de152442c0e09d258a8c56045885b0e6fac"
-  integrity sha512-e0P6ULln9Xkrz0dOBoZkk5cBqde2B74SH4I6suEUq/r9BDcLQdIeC6kyheaCrRhcWhM0ffHpoLUXxRl99NaVFA==
+"@scaffoldly/serverless-util@^3.0.33":
+  version "3.0.33"
+  resolved "https://registry.yarnpkg.com/@scaffoldly/serverless-util/-/serverless-util-3.0.33.tgz#4e5c61217ad41d1ac0e8df85fcd51e7b187f20f9"
+  integrity sha512-orvbPi+m/rw0jIJG3X/ESRFVHxiI2aqeINDcfwABSdmI2+u8tXKXfTVSj6+5RYHiVnXjJ7chBtFfhmBRqrLs2A==
   dependencies:
     "@scaffoldly/dynamodb" "^1.3.1"
     "@types/aws-lambda" "^8.10.72"
@@ -1598,7 +1598,7 @@
     cors "^2.8.5"
     dynamodb "npm:@scaffoldly/dynamodb@1.3.1"
     joi "^17.4.0"
-    jose "2"
+    jose "^2.0.5"
     moment "^2.29.1"
     morgan-body "^2.6.5"
     tsoa "^3.8.0"
@@ -8102,7 +8102,7 @@ joi@^17.2.1, joi@^17.3.0, joi@^17.4.0:
     "@sideway/formula" "^3.0.0"
     "@sideway/pinpoint" "^2.0.0"
 
-jose@2:
+jose@^2.0.5:
   version "2.0.5"
   resolved "https://registry.yarnpkg.com/jose/-/jose-2.0.5.tgz#29746a18d9fff7dcf9d5d2a6f62cb0c7cd27abd3"
   integrity sha512-BAiDNeDKTMgk4tvD0BbxJ8xHEHBZgpeRZ1zGPPsitSyMgjoMWiLGYAE7H7NpP5h0lPppQajQs871E8NHUrzVPA==

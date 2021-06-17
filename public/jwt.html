@@ -25,6 +25,7 @@
     function login() {
       const url = 'api/v1/jwt/email'
       const data = {
+        provider: 'EMAIL',
         email: $('#email').val(),
         code: $('#code').val() || undefined
       }
