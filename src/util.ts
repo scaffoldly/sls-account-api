@@ -1,22 +1,4 @@
-import { SENSITIVE_KEYS } from './constants';
-import { CleansedObject } from './types';
-
-export const stringifyRedacted = (obj: unknown): string => {
-  const ret = JSON.parse(JSON.stringify(obj));
-  Object.keys(ret).forEach((key) => {
-    if (SENSITIVE_KEYS.includes(key.toLowerCase())) {
-      if (Array.isArray(ret[key])) {
-        ret[key] = ['**REDACTED**'];
-      } else {
-        ret[key] = '**REDACTED**';
-      }
-    } else if (ret[key] instanceof Object) {
-      ret[key] = stringifyRedacted(ret[key]);
-    }
-  });
-
-  return JSON.stringify(ret);
-};
+import { CleansedObject } from '@scaffoldly/serverless-util';
 
 export const cleanseObject = (obj: unknown): CleansedObject => {
   if (obj == null) {

@@ -1,3 +1,22 @@
 {
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "filewatcher.commands": [
+    {
+      "match": "src/(controllers|interfaces|models/interfaces|services)/(.*).ts",
+      "cmd": "cd ${workspaceRoot} && yarn openapi",
+      "event": "onFileChange"
+    },
+    {
+      "match": "src/models/schemas/(.*).ts",
+      "cmd": "cd ${workspaceRoot} && yarn types && yarn openapi",
+      "event": "onFileChange"
+    }
+  ],
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features"
+  }
 }
