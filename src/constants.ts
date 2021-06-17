@@ -1,17 +1,6 @@
 export const { SERVICE_NAME, STAGE } = process.env;
-export const { JWT_REFRESH_TOKEN_MAX_AGE } = process.env;
-export const ACCOUNTS_TABLE = 'accounts';
+export const { JWT_REFRESH_TOKEN_MAX_AGE = '31557600000' } = process.env;
+
+export const TABLE_SUFFIX = '';
 
 export const REFRESH_COOKIE_PREFIX = '__Secure-sly_jrt_';
-
-export const SENSITIVE_KEYS = [
-  'password',
-  'key',
-  'x-api-key',
-  'api-key',
-  'token',
-  'secret',
-  'authtoken',
-  'idtoken',
-];
-export const AUTH_PREFIXES = ['Bearer', 'jwt'];

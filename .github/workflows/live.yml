@@ -11,6 +11,9 @@ env:
   AWS_REST_API_ID: ${{ secrets.LIVE_AWS_REST_API_ID }}
   AWS_REST_API_ROOT_RESOURCE_ID: ${{ secrets.LIVE_AWS_REST_API_ROOT_RESOURCE_ID }}
   NODE_ENV: live
+
+concurrency: live
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
