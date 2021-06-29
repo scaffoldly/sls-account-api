@@ -1569,10 +1569,10 @@
     stream-to-promise "^2.2.0"
     uuid "^7.0.3"
 
-"@scaffoldly/openapi-generator@^1.0.12":
-  version "1.0.12"
-  resolved "https://registry.yarnpkg.com/@scaffoldly/openapi-generator/-/openapi-generator-1.0.12.tgz#786e6a7da726683548b5de17e56245ef758f3a75"
-  integrity sha512-JFJdgbY7t+7mRnWm3RIR6AL1x9mN7poL+ka+B8GM36UfOTSSeu2kb0DQM632+iItKMa8Qgk27scA8abb1xLohw==
+"@scaffoldly/openapi-generator@^1.0.13":
+  version "1.0.13"
+  resolved "https://registry.yarnpkg.com/@scaffoldly/openapi-generator/-/openapi-generator-1.0.13.tgz#2436842f1c023eada52aff2ecbc2e439bffa86b6"
+  integrity sha512-iLPSV8F0E31ETYLQRYk+VrZ236bbIzVUUVIyggwQx94MXN1mm0GPTUKDRSySc2xDNIk803hJCRKhw+0AKm0mpg==
   dependencies:
     axios "^0.21.1"
     p-queue "^7.1.0"
