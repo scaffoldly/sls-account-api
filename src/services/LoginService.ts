@@ -167,12 +167,12 @@ export default class LoginService {
       EMAIL: {
         enabled: false,
         name: 'Email',
-        clientId: env.env_vars.MAIL_DOMAIN || undefined,
+        clientId: env.MAIL_DOMAIN || undefined,
       },
       GOOGLE: {
         enabled: false,
         name: 'Google',
-        clientId: env.env_vars.GOOGLE_CLIENT_ID || undefined,
+        clientId: env.GOOGLE_CLIENT_ID || undefined,
       },
     } as ProviderResponse;
 
@@ -233,7 +233,7 @@ export default class LoginService {
   };
 
   private verifyGoogleToken = async (token: string): Promise<VerificationResult> => {
-    const client = new Google.OAuth2Client({ clientId: env.env_vars.GOOGLE_CLIENT_ID });
+    const client = new Google.OAuth2Client({ clientId: env.GOOGLE_CLIENT_ID });
 
     let result: Google.LoginTicket;
     try {

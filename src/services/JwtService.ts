@@ -22,13 +22,11 @@ import { RefreshModel } from '../models/RefreshModel';
 import { Login, Refresh } from '../models/interfaces';
 
 const JWKS_SECRET_NAME = 'jwks';
-const DOMAIN = env.env_vars.SERVERLESS_API_DOMAIN;
+const DOMAIN = env.SERVERLESS_API_DOMAIN;
 
 const jwksCache: { [url: string]: { keys: JWKS.KeyStore; expires: Moment } } = {};
 
 export default class JwtService {
-  envVars = env.env_vars;
-
   refreshModel: RefreshModel;
 
   domain: string;
@@ -65,11 +63,9 @@ export default class JwtService {
       ...login.detail.request,
       id: login.id,
       sk: login.sk,
-      refreshUrl: `${ssl ? 'https' : 'http'}://${host}/${this.envVars.SERVICE_NAME}${path}/refresh`,
-      authorizeUrl: `${ssl ? 'https' : 'http'}://${host}/${
-        this.envVars.SERVICE_NAME
-      }${path}/authorize`,
-      certsUrl: `${ssl ? 'https' : 'http'}://${host}/${this.envVars.SERVICE_NAME}${path}/certs`,
+      refreshUrl: `${ssl ? 'https' : 'http'}://${host}/${env.SERVICE_NAME}${path}/refresh`,
+      authorizeUrl: `${ssl ? 'https' : 'http'}://${host}/${env.SERVICE_NAME}${path}/authorize`,
+      certsUrl: `${ssl ? 'https' : 'http'}://${host}/${env.SERVICE_NAME}${path}/certs`,
       sessionId,
     };
 
@@ -84,7 +80,7 @@ export default class JwtService {
     let keys = await GetSecret(JWKS_SECRET_NAME);
 
     if (!keys) {
-      const generatedKeys = this.generateKeys(env.env_vars.SERVERLESS_API_DOMAIN);
+      const generatedKeys = this.generateKeys(env.SERVERLESS_API_DOMAIN);
 
       await SetSecret(JWKS_SECRET_NAME, JSON.stringify(generatedKeys), true);
       keys = await GetSecret(JWKS_SECRET_NAME);
