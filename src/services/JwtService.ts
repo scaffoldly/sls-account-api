@@ -17,18 +17,20 @@ import { ulid } from 'ulid';
 import { TokenResponse } from '../interfaces/responses';
 import { env } from '../env';
 import { GeneratedKeys, Jwk } from '../interfaces/Jwt';
-import { JWT_REFRESH_TOKEN_MAX_AGE, REFRESH_COOKIE_PREFIX } from '../constants';
+import {
+  JWT_REFRESH_TOKEN_EXPIRATION_SEC,
+  JWT_TOKEN_EXPIRATION_SEC,
+  REFRESH_COOKIE_PREFIX,
+} from '../constants';
 import { RefreshModel } from '../models/RefreshModel';
 import { Login, Refresh } from '../models/interfaces';
 
 const JWKS_SECRET_NAME = 'jwks';
-const DOMAIN = env.env_vars.SERVERLESS_API_DOMAIN;
+const DOMAIN = env.SERVERLESS_API_DOMAIN;
 
 const jwksCache: { [url: string]: { keys: JWKS.KeyStore; expires: Moment } } = {};
 
 export default class JwtService {
-  envVars = env.env_vars;
-
   refreshModel: RefreshModel;
 
   domain: string;
@@ -65,11 +67,9 @@ export default class JwtService {
       ...login.detail.request,
       id: login.id,
       sk: login.sk,
-      refreshUrl: `${ssl ? 'https' : 'http'}://${host}/${this.envVars.SERVICE_NAME}${path}/refresh`,
-      authorizeUrl: `${ssl ? 'https' : 'http'}://${host}/${
-        this.envVars.SERVICE_NAME
-      }${path}/authorize`,
-      certsUrl: `${ssl ? 'https' : 'http'}://${host}/${this.envVars.SERVICE_NAME}${path}/certs`,
+      refreshUrl: `${ssl ? 'https' : 'http'}://${host}/${env.SERVICE_NAME}${path}/refresh`,
+      authorizeUrl: `${ssl ? 'https' : 'http'}://${host}/${env.SERVICE_NAME}${path}/authorize`,
+      certsUrl: `${ssl ? 'https' : 'http'}://${host}/${env.SERVICE_NAME}${path}/certs`,
       sessionId,
     };
 
@@ -84,7 +84,7 @@ export default class JwtService {
     let keys = await GetSecret(JWKS_SECRET_NAME);
 
     if (!keys) {
-      const generatedKeys = this.generateKeys(env.env_vars.SERVERLESS_API_DOMAIN);
+      const generatedKeys = this.generateKeys(env.SERVERLESS_API_DOMAIN);
 
       await SetSecret(JWKS_SECRET_NAME, JSON.stringify(generatedKeys), true);
       keys = await GetSecret(JWKS_SECRET_NAME);
@@ -108,7 +108,7 @@ export default class JwtService {
     const key = JWK.asKey(keys.privateKey.jwk as JWKECKey);
     const token = JWT.sign(response.payload, key, {
       audience: this.generateAudience(login.id),
-      expiresIn: '60 minute',
+      expiresIn: `${JWT_TOKEN_EXPIRATION_SEC}s`,
       header: {
         typ: 'JWT',
       },
@@ -132,7 +132,7 @@ export default class JwtService {
 
     const cookie = new Cookies.Cookie(`${REFRESH_COOKIE_PREFIX}${login.sk}`, token, {
       domain: Host as string,
-      maxAge: parseInt(JWT_REFRESH_TOKEN_MAX_AGE, 10),
+      maxAge: parseInt(JWT_REFRESH_TOKEN_EXPIRATION_SEC, 10) * 1000,
       overwrite: true,
       path: '/',
       httpOnly: true,
@@ -147,7 +147,7 @@ export default class JwtService {
         detail: {
           sk: login.sk,
           token,
-          expires: moment().add(JWT_REFRESH_TOKEN_MAX_AGE, 'millisecond').unix(),
+          expires: moment().add(JWT_REFRESH_TOKEN_EXPIRATION_SEC, 'seconds').unix(),
           header: cookie.toHeader(),
           sessionId,
         },
@@ -195,15 +195,15 @@ export default class JwtService {
 
     // Parse cookie from event header
     const cookie = this.extractRefreshCookie(request, decoded.sk);
-    if (!cookie.value) {
+    if (!cookie.values.length) {
       console.warn(`Unable to find cookie with name ${cookie.name}`);
       return null;
     }
 
     // Compare sly_jrt and decoded.sk value with result from DB
-    if (refreshRow.attrs.detail.token !== cookie.value) {
+    if (!cookie.values.includes(refreshRow.attrs.detail.token)) {
       console.warn(
-        `Token mismatch. Expected ${refreshRow.attrs.detail.token}, got ${cookie.value} from cookie ${cookie.name}`,
+        `Token mismatch. Expected ${refreshRow.attrs.detail.token}, got ${cookie.values} from cookie ${cookie.name}`,
       );
       return null;
     }
@@ -313,7 +313,7 @@ export default class JwtService {
   private extractRefreshCookie = (request: HttpRequest, sk: string) => {
     const refreshCookie = {
       name: `${REFRESH_COOKIE_PREFIX}${sk}`,
-      value: null as string | null,
+      values: [] as string[],
     };
 
     if (!request) {
@@ -340,10 +340,6 @@ export default class JwtService {
     }
 
     return cookies.reduce((acc, item) => {
-      if (acc.value) {
-        return acc;
-      }
-
       const [name, value] = item.trim().split('=');
       if (!name || !value) {
         console.warn(`Missing name or value in ${item}`);
@@ -351,7 +347,7 @@ export default class JwtService {
       }
 
       if (name === acc.name) {
-        acc.value = value;
+        acc.values.push(value);
       }
 
       return acc;
