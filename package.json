@@ -1,14 +1,14 @@
 {
   "name": "api",
-  "version": "1.15.0",
+  "version": "1.17.0",
   "license": "UNLICENSED",
   "scripts": {
-    "prepare": "yarn dotenv && yarn types && yarn tsoa && yarn dynamodb && yarn openapi && yarn build",
+    "prepare": "yarn dotenv && yarn openapi && yarn types && yarn tsoa && yarn dynamodb && yarn build",
     "build": "tsc",
     "start": "serverless offline start",
     "deploy": "serverless deploy",
     "serverless": "SLS_DEBUG=* serverless",
-    "dotenv": "dotenv -e .scaffoldly/.env -c $NODE_ENV -- ngx-scripts env service_urls env_vars --parse-json --out src/env.ts",
+    "dotenv": "dotenv-out -f typescript -e .scaffoldly/.env -e .env -c $NODE_ENV -o src",
     "openapi": "openapi-generator -g axios -i .scaffoldly/$NODE_ENV -o src/services/openapi",
     "types": "ts-node types.ts",
     "tsoa": "node tsoa.js",
@@ -17,7 +17,6 @@
   },
   "module": "",
   "devDependencies": {
-    "@ngx-rocket/scripts": "^5.1.0",
     "@scaffoldly/openapi-generator": "^1.0.13",
     "@types/aws-lambda": "^8.10.72",
     "@types/body-parser": "^1.19.0",
@@ -32,7 +31,7 @@
     "@typescript-eslint/eslint-plugin": "^4.27.0",
     "@typescript-eslint/parser": "^4.17.0",
     "babel-eslint": "^10.1.0",
-    "dotenv-cli": "^4.0.0",
+    "dotenv-out": "^1.0.3",
     "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.1.0",
     "eslint-config-airbnb-typescript": "^12.3.1",
@@ -54,7 +53,7 @@
     "typescript": "^4.2.3"
   },
   "dependencies": {
-    "@scaffoldly/serverless-util": "^3.0.33",
+    "@scaffoldly/serverless-util": "^3.0.35",
     "@vendia/serverless-express": "^4.3.9",
     "axios": "^0.21.1",
     "cookies": "^0.8.0",
