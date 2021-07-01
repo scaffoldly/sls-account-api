@@ -14,7 +14,7 @@ import swaggerJson from './swagger.json';
 
 const app = createApp();
 
-app.use(corsHandler());
+app.use(corsHandler({ withCredentials: true }));
 
 RegisterRoutes(app);
 

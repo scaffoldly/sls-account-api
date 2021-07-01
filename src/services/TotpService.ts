@@ -28,7 +28,7 @@ export default class TotpService {
       console.log(`Generating OTP for ${id}`);
       const { secret } = twofactor.generateSecret({
         account: email,
-        name: env.env_vars.APPLICATION_FRIENDLY_NAME,
+        name: env.APPLICATION_FRIENDLY_NAME,
       });
       // TODO: Encrypt secret/qr/url
       // TODO: Recovery Codes
@@ -54,11 +54,11 @@ export default class TotpService {
 
       const result = await this.ses
         .sendTemplatedEmail({
-          Source: `no-reply@${env.env_vars.MAIL_DOMAIN}`,
+          Source: `no-reply@${env.MAIL_DOMAIN}`,
           Destination: { ToAddresses: [email] },
           Template: await this.templateService.fetchTemplate('totp'),
           TemplateData: JSON.stringify({
-            Organization: env.env_vars.APPLICATION_FRIENDLY_NAME,
+            Organization: env.APPLICATION_FRIENDLY_NAME,
             OTP: token,
           }),
         })
